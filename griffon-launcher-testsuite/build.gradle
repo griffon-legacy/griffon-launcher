@@ -1,0 +1,97 @@
+import org.codehaus.griffon.launcher.GriffonVersion
+
+description: "A test harness for griffon-launcher that can run with multiple Griffon griffonVersions"
+
+buildscript {
+    repositories {
+        flatDir name: 'griffon-launcher', dirs: "$projectDir/../griffon-launcher/build/libs"
+    }
+    dependencies {
+        classpath ":griffon-launcher:latest.integration"
+    }
+}
+
+apply plugin: "groovy"
+
+repositories {
+    mavenCentral()
+    flatDir name: 'griffon-launcher', dirs: "$projectDir/../griffon-launcher/build/libs"
+}
+
+dependencies { 
+    groovy "org.codehaus.groovy:groovy-all:1.7.10"
+    testCompile ":griffon-launcher:latest.integration"
+    testCompile "org.spockframework:spock-core:0.5-groovy-1.7"
+}
+
+task test (overwrite: true) {}
+
+testWith "0.9.3"
+
+def testWith(String... griffonVersions) {
+    griffonVersions.each { griffonVersion ->
+
+        def versionQuirks = new GriffonVersion(griffonVersion)
+        
+        def griffonBootstrapClasspathName = "griffonBootstrap-$griffonVersion"
+        def griffonCompileClasspathName = "griffonCompile-$griffonVersion"
+        def griffonTestClasspathName = "griffonTest-$griffonVersion"
+        def griffonRuntimeClasspathName = "griffonRuntime-$griffonVersion"
+
+        def classpaths = [
+            bootstrap: griffonBootstrapClasspathName,
+            compile: griffonCompileClasspathName, 
+            test: griffonTestClasspathName, 
+            runtime: griffonRuntimeClasspathName
+        ]
+        
+        classpaths.each { type, config ->
+            configurations.add(config) {
+                description = "${type.capitalize()} Classpath for Griffon $griffonVersion"
+            }
+        }
+
+        classpaths.bootstrapRuntime = "griffonBootstrapRuntime-$griffonVersion"
+        configurations.add(classpaths.bootstrapRuntime) {
+            description = "Bootstrap classpath for run-app and test-app"
+            extendsFrom configurations."$classpaths.bootstrap", configurations."$classpaths.runtime"
+        }
+        
+        dependencies {
+            ["rt", "cli", "scripts", "resources"].each {
+                delegate."$griffonBootstrapClasspathName" "org.codehaus.griffon:griffon-$it:${griffonVersion}"
+            }
+        
+            delegate."$griffonRuntimeClasspathName" "org.codehaus.griffon:griffon-rt:${griffonVersion}"
+            delegate."$griffonTestClasspathName" "org.codehaus.griffon:griffon-scripts:${griffonVersion}"
+        }
+
+        def testTaskName = "test-against-$griffonVersion"
+        task (testTaskName, type: Test) {
+            description = "Runs the test suite against Griffon $griffonVersion"
+            testReportDir = file("${project.testReportDir}-$griffonVersion")
+            testResultsDir = file("${project.testResultsDir}-$griffonVersion")
+            
+            ignoreFailures = true
+            
+            doFirst {
+                def workspace = file("$buildDir/griffon-work/$griffonVersion")
+                assert !workspace.exists() || workspace.deleteDir()
+                assert workspace.mkdirs()
+                
+                def prefix = "griffon.launcher.testsuite"
+                systemProperty "${prefix}.griffonVersion", griffonVersion
+                systemProperty "${prefix}.workspace", workspace.absolutePath 
+                classpaths.each { type, config ->
+                    systemProperty "${prefix}.classpath.$type", project.configurations."$config".files*.absolutePath.join(":")
+                }
+            }
+        }
+        
+        tasks.test.dependsOn tasks.getByName(testTaskName)
+    }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = "0.9.2"
+}

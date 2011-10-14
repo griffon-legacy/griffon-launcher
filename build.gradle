@@ -1,0 +1,86 @@
+import org.apache.ivy.util.url.CredentialsStore
+
+subprojects { project ->
+    description = "A standalone library for launching any version of Griffon in the same JVM with an isolated classpath"
+    
+    apply plugin: "groovy"
+    apply plugin: "maven"
+    
+    repositories {
+        mavenCentral()
+    }
+
+    // Move the Groovy config into the test space so we don't have groovy
+    // on our runtime classpath and as a runtime dependency
+    configurations {
+        compile.extendsFrom = []
+        testCompile.extendsFrom groovy
+    }
+    
+    dependencies {
+        groovy "org.codehaus.groovy:groovy-all:$groovyVersion"
+        testCompile "org.spockframework:spock-core:$spockVersion"
+    }
+    
+    project.poms = [project.install.repositories.mavenInstaller.pom]
+    uploadArchives {
+        project.deployer = repositories.mavenDeployer {
+            def username = project.properties["codehausUsername"] ?: ''
+            def password = project.properties["codehausPassword"] ?: ''
+
+            uploadDescriptor = true
+            repository(url: codehausReleaseUrl) {
+                authentication(userName: codehausUsername, password: codehausPassword)
+            }
+            snapshotRepository(url: codehausSnapshotUrl) {
+                uniqueVersion = true
+                authentication(userName: codehausUsername, password: codehausPassword)
+            }
+        }
+        project.poms << project.deployer.pom
+    }
+    
+    project.pomModifications = []
+    project.modifyPom = { Closure modification -> project.pomModifications << modification }
+    project.poms*.whenConfigured { pom ->
+        project.pomModifications.each { modification ->
+            pom.project {
+                modification.delegate = delegate
+                modification.resolveStrategy = Closure.DELEGATE_FIRST
+                modification()
+            }
+        }
+    }
+    
+    project.modifyPom {
+        name "Griffon Launcher"
+        description project.description
+        url "http://griffon.codehaus.org"
+        inceptionYear "2011"
+        licenses {
+            license {
+                name 'The Apache Software License, Version 2.0'
+                url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                distribution 'repo'
+            }
+        }
+        scm {
+            url "https://github.com/griffon/griffon-launcher/"
+        }
+        developers {
+            [aalmiray: "Andres Almiray"].each { devId, devName ->
+                developer {
+                    id devId
+                    name devName
+                    roles {
+                        role "Developer"
+                    }
+                }
+            }
+        }
+    }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = "0.9.2"
+}
