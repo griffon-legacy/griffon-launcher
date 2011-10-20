@@ -1,5 +1,3 @@
-import org.apache.ivy.util.url.CredentialsStore
-
 subprojects { project ->
     description = "A standalone library for launching any version of Griffon in the same JVM with an isolated classpath"
     
