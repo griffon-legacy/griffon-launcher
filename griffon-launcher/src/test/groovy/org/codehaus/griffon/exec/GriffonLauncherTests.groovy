@@ -10,11 +10,6 @@ class GriffonLauncherTests extends GroovyTestCase {
     def testRunner
     def testSettings
 
-    void testSetDepedenciesExternallyConfigured() {
-        def testHelper = new GriffonLauncher(new CustomClassLoader(this))
-        testHelper.setDependenciesExternallyConfigured(true)
-    }
-
     void testExecution() {
         def testHelper = new GriffonLauncher(new CustomClassLoader(this))
         assertEquals 0, testHelper.launch("Compile")
@@ -114,6 +109,18 @@ class MockBuildSettings {
     }
 }
 
+class MockGriffonSetup {
+    static boolean ran
+
+    static void run() {
+        ran = true
+    }
+}
+
+class MockBuildSettingsHolder {
+    static MockBuildSettings settings
+}
+
 class CustomClassLoader extends URLClassLoader {
     def testCase
 
@@ -131,6 +138,14 @@ class CustomClassLoader extends URLClassLoader {
         if (name == "griffon.util.BuildSettings") {
             MockBuildSettings.testCase = this.testCase
             return MockBuildSettings
+        }
+
+        if (name == "griffon.util.BuildSettingsHolder") {
+            return MockBuildSettingsHolder
+        }
+
+        if (name == "org.codehaus.griffon.cli.GriffonSetup") {
+            return MockGriffonSetup
         }
 
         throw new AssertionFailedError("Asked to load unrecognised class: ${name}")

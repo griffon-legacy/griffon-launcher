@@ -1,1 +1,12 @@
-include "griffon-launcher", "griffon-launcher-ant"
+include 'griffon-launcher'
+include 'griffon-launcher-ant'
+
+rootProject.name = 'griffon'
+rootProject.children.each {project ->
+    String fileBaseName = project.name
+    String projectDirName = fileBaseName
+    project.projectDir = new File(settingsDir, projectDirName)
+    project.buildFileName = "${fileBaseName}.gradle"
+    assert project.projectDir.isDirectory()
+    assert project.buildFile.isFile()
+}

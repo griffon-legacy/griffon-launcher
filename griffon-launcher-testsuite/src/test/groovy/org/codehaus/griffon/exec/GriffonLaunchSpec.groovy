@@ -38,12 +38,8 @@ abstract class GriffonLaunchSpec extends Specification {
         getSystemProperty("griffonVersion")
     }
     
-    protected commandRequiresRuntimeClasspathForBootstrap(command) {
-        command in ["run-app", "test-app"]
-    }
-    
     protected getBootstrapClasspath() {
-        getClasspath(commandRequiresRuntimeClasspathForBootstrap(command) ? "bootstrapRuntime" : "bootstrap")
+        getClasspath("bootstrap")
     }
     
     Collection<File> getClasspath(type) {
@@ -101,10 +97,6 @@ abstract class GriffonLaunchSpec extends Specification {
     }
     
     def launch() {
-        if (command == "test-app") {
-            // installGriffon7296Fix()
-        }
-        
         println ""
         println "-- Executing $command $props $args (@ $project)"
         println ""
@@ -131,15 +123,5 @@ abstract class GriffonLaunchSpec extends Specification {
         if (baseDir) {
             assert !baseDir.exists() || baseDir.deleteDir()
         }
-    }
-    
-    private installGriffon7296Fix() {
-        projectFile("scripts/_Events.groovy") << """
-            // Override to workaround GRAILS-7296
-            org.codehaus.groovy.griffon.test.support.GriffonTestTypeSupport.metaClass.getSourceDir = { ->
-                println "testSourceDir: \$delegate.buildBinding.griffonSettings.testSourceDir"
-                new File(delegate.buildBinding.griffonSettings.testSourceDir, delegate.relativeSourcePath)
-            }
-        """
     }
 }

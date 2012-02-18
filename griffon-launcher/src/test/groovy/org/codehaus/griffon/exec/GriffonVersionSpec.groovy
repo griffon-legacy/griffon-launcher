@@ -15,27 +15,28 @@
  */
 package org.codehaus.griffon.launcher
 
-import spock.lang.*
+import spock.lang.Specification
+import spock.lang.Unroll
 
 class GriffonVersionSpec extends Specification {
-    
+
     @Delegate GriffonVersion _v
-    
+
     void version(String v) {
         _v = new GriffonVersion(v)
     }
 
-    @Unroll("version - #number")
+    @Unroll({"version - $string"})
     def "valid parsing"() {
         given:
         version string
-        
+
         expect:
         major == maj
         minor == min
         patch == p
         tag == t
-        
+
         where:
         string                 | maj | min | p | t
         "1.2"                  | 1   | 2   | 0 | null

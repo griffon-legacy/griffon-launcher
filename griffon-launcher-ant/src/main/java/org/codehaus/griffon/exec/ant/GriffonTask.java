@@ -39,10 +39,7 @@ import org.apache.tools.ant.types.Reference;
  *          &lt;include name="griffon-*.jar"/&gt;
  *       &lt;/fileset&gt;
  *       &lt;fileset dir="${griffon.home}/lib"&gt;
- *          &lt;include name="groovy-all*.jar"/&gt;
- *          &lt;include name="ivy*.jar"/&gt;
- *          &lt;include name="gpars*.jar"/&gt;
- *          &lt;include name="gant_groovy*.jar"/&gt;
+ *          &lt;include name="*.jar"/&gt;
  *       &lt;/fileset&gt;
  *    &lt;/path&gt;
  *
@@ -51,7 +48,7 @@ import org.apache.tools.ant.types.Reference;
  *             classpathref="griffon.classpath"/&gt;
  * </pre>
  * You must have the "griffon-rt", "griffon-cli", "griffon-resources", 
- * "griffon-scripts", "groovy-all", Ivy, and GPars JARs on
+ * "griffon-scripts", "groovy-all" JARs on
  * the <code>taskdef<code>'s classpath, otherwise the task won't load.
  * </p>
  * <p>Once the task is defined, you can use it like this:
