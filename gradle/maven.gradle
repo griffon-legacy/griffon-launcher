@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-project.poms = [project.install.repositories.mavenInstaller.pom]
+project.ext.poms = [project.install.repositories.mavenInstaller.pom]
 uploadArchives {
-    project.deployer = repositories.mavenDeployer {
+    project.ext.deployer = repositories.mavenDeployer {
         def username = project.properties["codehausUsername"] ?: ''
         def password = project.properties["codehausPassword"] ?: ''
 
@@ -29,13 +29,13 @@ uploadArchives {
             authentication(userName: username, password: password)
         }
     }
-    project.poms << project.deployer.pom
+    project.ext.poms << project.deployer.pom
 }
 
-project.pomModifications = []
-project.modifyPom = { Closure modification -> project.pomModifications << modification }
-project.poms*.whenConfigured { pom ->
-    project.pomModifications.each { modification ->
+project.ext.pomModifications = []
+project.ext.modifyPom = { Closure modification -> project.pomModifications << modification }
+project.ext.poms*.whenConfigured { pom ->
+    project.ext.pomModifications.each { modification ->
         pom.project {
             modification.delegate = delegate
             modification.resolveStrategy = Closure.DELEGATE_FIRST
@@ -44,7 +44,7 @@ project.poms*.whenConfigured { pom ->
     }
 }
 
-project.modifyPom {
+project.ext.modifyPom {
     name "Griffon Launcher"
     description project.description
     url "http://griffon.codehaus.org"
