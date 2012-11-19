@@ -16,10 +16,10 @@ package org.codehaus.griffon.launcher;
 
 import java.io.File;
 import java.net.URLClassLoader;
+import java.text.DateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.Date;
-import java.text.DateFormat;
 
 /**
  * Helper class that allows a client to bootstrap the Griffon build system
@@ -33,6 +33,7 @@ import java.text.DateFormat;
 public class GriffonLauncher {
     private ClassLoader classLoader;
     private Object settings;
+    private Object scriptRunner;
 
     /**
      * Creates a helper that loads the Griffon build system with the given
@@ -81,18 +82,36 @@ public class GriffonLauncher {
 
             Class<?> settingsHolder = classLoader.loadClass("griffon.util.BuildSettingsHolder");
             invokeMethod(settingsHolder, "setSettings",
-                    new Class[]{clazz},
-                    new Object[]{settings});
+                new Class[]{clazz},
+                settings);
 
             // Initialise the root loader for the BuildSettings.
             invokeMethod(settings, "setRootLoader",
-                    new Class[]{URLClassLoader.class},
-                    new Object[]{classLoader});
+                new Class[]{URLClassLoader.class},
+                classLoader);
+
+
+            scriptRunner = createScriptRunner();
+            invokeMethod(scriptRunner, "setup");
 
             callGriffonSetup();
         } catch (Exception ex) {
             // ex.printStackTrace();
             throw new RuntimeException(ex);
+        }
+    }
+
+    public Object getBuildSettings() {
+        return settings;
+    }
+
+    public void addBuildEventListener(Object listener) {
+        Class<?> buildListenerClass = null;
+        try {
+            buildListenerClass = classLoader.loadClass("griffon.build.GriffonBuildListener");
+            invokeMethod(scriptRunner, "addBuildEventListener", new Class[]{buildListenerClass}, listener);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -118,11 +137,10 @@ public class GriffonLauncher {
      */
     public int launch(String script, String args) {
         try {
-            debug("Launching "+script+" with args "+args);
-            Object scriptRunner = createScriptRunner();
+            debug("Launching " + script + " with args " + args);
             Object retval = scriptRunner.getClass().
-                    getMethod("executeCommand", new Class[]{String.class, String.class}).
-                    invoke(scriptRunner,script, args);
+                getMethod("executeCommand", new Class[]{String.class, String.class}).
+                invoke(scriptRunner, script, args);
             return (Integer) retval;
         } catch (Exception ex) {
             // ex.printStackTrace();
@@ -145,12 +163,11 @@ public class GriffonLauncher {
      */
     public int launch(String script, String args, String env) {
         try {
-            debug("Launching "+script+" with env "+env+" and args "+args);
+            debug("Launching " + script + " with env " + env + " and args " + args);
             // script = getScriptName(script);
-            Object scriptRunner = createScriptRunner();
             Object retval = scriptRunner.getClass().
-                    getMethod("executeCommand", new Class[]{String.class, String.class, String.class}).
-                    invoke(scriptRunner,script, args, env);
+                getMethod("executeCommand", new Class[]{String.class, String.class, String.class}).
+                invoke(scriptRunner, script, args, env);
             return (Integer) retval;
         } catch (Exception ex) {
             // ex.printStackTrace();
@@ -186,109 +203,109 @@ public class GriffonLauncher {
     }
 
     public File getGriffonWorkDir() {
-        return (File) invokeMethod(settings, "getGriffonWorkDir", new Object[0]);
+        return (File) invokeMethod(settings, "getGriffonWorkDir");
     }
 
     public void setGriffonWorkDir(File dir) {
-        invokeMethod(settings, "setGriffonWorkDir", new Object[]{dir});
+        invokeMethod(settings, "setGriffonWorkDir", dir);
     }
 
     public File getProjectWorkDir() {
-        return (File) invokeMethod(settings, "getProjectWorkDir", new Object[0]);
+        return (File) invokeMethod(settings, "getProjectWorkDir");
     }
 
     public void setProjectWorkDir(File dir) {
-        invokeMethod(settings, "setProjectWorkDir", new Object[]{dir});
+        invokeMethod(settings, "setProjectWorkDir", dir);
     }
 
     public File getClassesDir() {
-        return (File) invokeMethod(settings, "getClassesDir", new Object[0]);
+        return (File) invokeMethod(settings, "getClassesDir");
     }
 
     public void setClassesDir(File dir) {
-        invokeMethod(settings, "setClassesDir", new Object[]{dir});
+        invokeMethod(settings, "setClassesDir", dir);
     }
 
     public File getTestClassesDir() {
-        return (File) invokeMethod(settings, "getTestClassesDir", new Object[0]);
+        return (File) invokeMethod(settings, "getTestClassesDir");
     }
 
     public void setTestClassesDir(File dir) {
-        invokeMethod(settings, "setTestClassesDir", new Object[]{dir});
+        invokeMethod(settings, "setTestClassesDir", dir);
     }
 
     public File getResourcesDir() {
-        return (File) invokeMethod(settings, "getResourcesDir", new Object[0]);
+        return (File) invokeMethod(settings, "getResourcesDir");
     }
 
     public void setResourcesDir(File dir) {
-        invokeMethod(settings, "setResourcesDir", new Object[]{dir});
+        invokeMethod(settings, "setResourcesDir", dir);
     }
 
     public File getProjectPluginsDir() {
-        return (File) invokeMethod(settings, "getProjectPluginsDir", new Object[0]);
+        return (File) invokeMethod(settings, "getProjectPluginsDir");
     }
 
     public void setProjectPluginsDir(File dir) {
-        invokeMethod(settings, "setProjectPluginsDir", new Object[]{dir});
+        invokeMethod(settings, "setProjectPluginsDir", dir);
     }
 
     public File getTestReportsDir() {
-        return (File) invokeMethod(settings, "getTestReportsDir", new Object[0]);
+        return (File) invokeMethod(settings, "getTestReportsDir");
     }
 
     public void setTestReportsDir(File dir) {
-        invokeMethod(settings, "setTestReportsDir", new Object[]{dir});
+        invokeMethod(settings, "setTestReportsDir", dir);
     }
 
     @SuppressWarnings("rawtypes")
     public List getCompileDependencies() {
-        return (List) invokeMethod(settings, "getCompileDependencies", new Object[0]);
+        return (List) invokeMethod(settings, "getCompileDependencies");
     }
 
     @SuppressWarnings("rawtypes")
     public void setCompileDependencies(List dependencies) {
-        invokeMethod(settings, "setCompileDependencies", new Class[]{List.class}, new Object[]{dependencies});
+        invokeMethod(settings, "setCompileDependencies", new Class[]{List.class}, dependencies);
     }
 
     public void setDependenciesExternallyConfigured(boolean b) {
-        invokeMethod(settings, "setDependenciesExternallyConfigured", new Class[] { boolean.class }, new Object[] { b });
+        invokeMethod(settings, "setDependenciesExternallyConfigured", new Class[]{boolean.class}, b);
     }
 
     @SuppressWarnings("rawtypes")
     public List getTestDependencies() {
-        return (List) invokeMethod(settings, "getTestDependencies", new Object[0]);
+        return (List) invokeMethod(settings, "getTestDependencies");
     }
 
     @SuppressWarnings("rawtypes")
     public void setTestDependencies(List dependencies) {
-        invokeMethod(settings, "setTestDependencies", new Class[]{List.class}, new Object[]{dependencies});
+        invokeMethod(settings, "setTestDependencies", new Class[]{List.class}, dependencies);
     }
 
     @SuppressWarnings("rawtypes")
     public List getRuntimeDependencies() {
-        return (List) invokeMethod(settings, "getRuntimeDependencies", new Object[0]);
+        return (List) invokeMethod(settings, "getRuntimeDependencies");
     }
 
     @SuppressWarnings("rawtypes")
     public void setRuntimeDependencies(List dependencies) {
-        invokeMethod(settings, "setRuntimeDependencies", new Class[]{List.class}, new Object[]{dependencies});
+        invokeMethod(settings, "setRuntimeDependencies", new Class[]{List.class}, dependencies);
     }
 
     @SuppressWarnings("rawtypes")
     public List getBuildDependencies() {
-        return (List) invokeMethod(settings, "getBuildDependencies", new Object[0]);
+        return (List) invokeMethod(settings, "getBuildDependencies");
     }
 
     @SuppressWarnings("rawtypes")
     public void setBuildDependencies(List dependencies) {
-        invokeMethod(settings, "setBuildDependencies", new Class[]{List.class}, new Object[]{dependencies});
+        invokeMethod(settings, "setBuildDependencies", new Class[]{List.class}, dependencies);
     }
 
     private Object createScriptRunner() throws Exception {
         return classLoader.loadClass("org.codehaus.griffon.cli.GriffonScriptRunner").
-                getDeclaredConstructor(new Class[]{settings.getClass()}).
-                newInstance(settings);
+            getDeclaredConstructor(new Class[]{settings.getClass()}).
+            newInstance(settings);
     }
 
     private void callGriffonSetup() throws Exception {
@@ -305,7 +322,7 @@ public class GriffonLauncher {
      * @param args   The arguments to pass to the method (may be an empty array).
      * @return The value returned by the method.
      */
-    private Object invokeMethod(Object target, String name, Object[] args) {
+    private Object invokeMethod(Object target, String name, Object... args) {
         Class<?>[] argTypes = new Class[args.length];
         for (int i = 0; i < args.length; i++) {
             argTypes[i] = args[i].getClass();
@@ -323,7 +340,7 @@ public class GriffonLauncher {
      * @param args   The arguments to pass to the method (may be an empty array).
      * @return The value returned by the method.
      */
-    private Object invokeMethod(Class target, String name, Object[] args) {
+    private Object invokeMethod(Class target, String name, Object... args) {
         Class<?>[] argTypes = new Class[args.length];
         for (int i = 0; i < args.length; i++) {
             argTypes[i] = args[i].getClass();
@@ -345,14 +362,14 @@ public class GriffonLauncher {
      *                 array).
      * @return The value returned by the method.
      */
-    private Object invokeMethod(Class target, String name, Class<?>[] argTypes, Object[] args) {
+    private Object invokeMethod(Class target, String name, Class<?>[] argTypes, Object... args) {
         try {
             return target.getMethod(name, argTypes).invoke(target, args);
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
     }
-    
+
     /**
      * Invokes the named method on a target object using reflection.
      * The method signature is determined by given array of classes.
@@ -366,7 +383,7 @@ public class GriffonLauncher {
      *                 array).
      * @return The value returned by the method.
      */
-    private Object invokeMethod(Object target, String name, Class<?>[] argTypes, Object[] args) {
+    private Object invokeMethod(Object target, String name, Class<?>[] argTypes, Object... args) {
         try {
             return target.getClass().getMethod(name, argTypes).invoke(target, args);
         } catch (Exception ex) {
@@ -378,10 +395,10 @@ public class GriffonLauncher {
         if (isDebugEnabled()) {
             Date now = new Date();
             System.out.println("[" +
-                    getDateString(now)
-                    + " " +
-                    getTimeString(now)
-                    + "] " + msg);
+                getDateString(now)
+                + " " +
+                getTimeString(now)
+                + "] " + msg);
         }
     }
 

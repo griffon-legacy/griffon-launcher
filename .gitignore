@@ -1,12 +1,14 @@
 build
 .gradle
 gradlew*
-griffon.iml
-griffon.ipr
-griffon.iws
 griffon-launcher-testsuite/griffon-launcher-testsuite.ipr
 griffon-launcher-testsuite/griffon-launcher-testsuite.iws
 griffon-launcher-testsuite/griffon-launcher-testsuite.ipr
 griffon-launcher-ant/griffon-launcher-ant.iml
 griffon-launcher-testsuite/griffon-launcher-testsuite.iml
 griffon-launcher/griffon-launcher.iml
+griffon-launcher-master.iml
+griffon-launcher-master.ipr
+griffon-launcher-master.iws
+.idea
+out
