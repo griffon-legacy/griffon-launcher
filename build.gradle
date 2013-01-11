@@ -47,12 +47,12 @@ configure(mavenizedProjects()) {
 
 def mavenizedProjects() {
     [
-            project(':griffon-launcher'),
-            project(':griffon-launcher-ant')
+        project(':griffon-launcher'),
+        project(':griffon-launcher-ant')
     ]
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.2'
+    gradleVersion = '1.3'
     jarFile = 'gradle/wrapper/gradle-wrapper.jar'
 }
